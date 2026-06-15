@@ -1,21 +1,24 @@
 //@version=5
 indicator("Macro News Flow Engine v2", overlay=true, max_labels_count=500, max_lines_count=500)
 
+// GitHub Pine Seed source
 seedSource = input.string("seed_asakised_macro-news-engine", "Seed Source")
 
+// Display filters
 showNews  = input.bool(true, "Show News")
 showCFTC  = input.bool(true, "Show CFTC")
 showCME   = input.bool(true, "Show CME")
 showMacro = input.bool(true, "Show Macro")
 
-getSlot(simple int slot) =>
-    request.seed(seedSource, "MACRO_SLOT_" + str.tostring(slot), "EMPTY", ignore_invalid_symbol=true)
+// Read seed slot
+getSlot(simple string fileName) =>
+    request.seed(seedSource, fileName, "EMPTY", ignore_invalid_symbol=true)
 
-var table t = table.new(position.bottom_right, 6, 15, border_width=1)
-
-processRow(series string raw, int row) =>
+// Process one row
+processRow(series string raw, int row, table tbl) =>
     if str.length(raw) > 0 and raw != "EMPTY"
         p = str.split(raw, "|")
+
         if array.size(p) >= 6
             newsTime = array.get(p, 0)
             asset    = array.get(p, 1)
@@ -31,49 +34,53 @@ processRow(series string raw, int row) =>
                  ((nType == "CENTRAL_BANK" or nType == "COMMODITY" or nType == "CRYPTO") and showMacro)
 
             if allowed
-                table.cell(t, 0, row, newsTime)
-                table.cell(t, 1, row, asset)
-                table.cell(t, 2, row, nType)
-                table.cell(t, 3, row, impact)
-                table.cell(t, 4, row, source)
-                table.cell(t, 5, row, headline)
+                table.cell(tbl, 0, row, newsTime)
+                table.cell(tbl, 1, row, asset)
+                table.cell(tbl, 2, row, nType)
+                table.cell(tbl, 3, row, impact)
+                table.cell(tbl, 4, row, source)
+                table.cell(tbl, 5, row, headline)
 
-s1  = getSlot(1)
-s2  = getSlot(2)
-s3  = getSlot(3)
-s4  = getSlot(4)
-s5  = getSlot(5)
-s6  = getSlot(6)
-s7  = getSlot(7)
-s8  = getSlot(8)
-s9  = getSlot(9)
-s10 = getSlot(10)
-s11 = getSlot(11)
-s12 = getSlot(12)
-s13 = getSlot(13)
-s14 = getSlot(14)
+// Fixed seed calls
+slot1  = getSlot("data/MACRO_SLOT_1.txt")
+slot2  = getSlot("data/MACRO_SLOT_2.txt")
+slot3  = getSlot("data/MACRO_SLOT_3.txt")
+slot4  = getSlot("data/MACRO_SLOT_4.txt")
+slot5  = getSlot("data/MACRO_SLOT_5.txt")
+slot6  = getSlot("data/MACRO_SLOT_6.txt")
+slot7  = getSlot("data/MACRO_SLOT_7.txt")
+slot8  = getSlot("data/MACRO_SLOT_8.txt")
+slot9  = getSlot("data/MACRO_SLOT_9.txt")
+slot10 = getSlot("data/MACRO_SLOT_10.txt")
+slot11 = getSlot("data/MACRO_SLOT_11.txt")
+slot12 = getSlot("data/MACRO_SLOT_12.txt")
+slot13 = getSlot("data/MACRO_SLOT_13.txt")
+slot14 = getSlot("data/MACRO_SLOT_14.txt")
+
+// Table
+var table newsTable = table.new(position.bottom_right, 6, 15, border_width=1)
 
 if barstate.islast
-    table.clear(t, 0, 0, 5, 14)
+    table.clear(newsTable, 0, 0, 5, 14)
 
-    table.cell(t, 0, 0, "Time")
-    table.cell(t, 1, 0, "Asset")
-    table.cell(t, 2, 0, "Type")
-    table.cell(t, 3, 0, "Impact")
-    table.cell(t, 4, 0, "Source")
-    table.cell(t, 5, 0, "Headline")
+    table.cell(newsTable, 0, 0, "Time")
+    table.cell(newsTable, 1, 0, "Asset")
+    table.cell(newsTable, 2, 0, "Type")
+    table.cell(newsTable, 3, 0, "Impact")
+    table.cell(newsTable, 4, 0, "Source")
+    table.cell(newsTable, 5, 0, "Headline")
 
-    processRow(s1, 1)
-    processRow(s2, 2)
-    processRow(s3, 3)
-    processRow(s4, 4)
-    processRow(s5, 5)
-    processRow(s6, 6)
-    processRow(s7, 7)
-    processRow(s8, 8)
-    processRow(s9, 9)
-    processRow(s10, 10)
-    processRow(s11, 11)
-    processRow(s12, 12)
-    processRow(s13, 13)
-    processRow(s14, 14)
+    processRow(slot1, 1, newsTable)
+    processRow(slot2, 2, newsTable)
+    processRow(slot3, 3, newsTable)
+    processRow(slot4, 4, newsTable)
+    processRow(slot5, 5, newsTable)
+    processRow(slot6, 6, newsTable)
+    processRow(slot7, 7, newsTable)
+    processRow(slot8, 8, newsTable)
+    processRow(slot9, 9, newsTable)
+    processRow(slot10, 10, newsTable)
+    processRow(slot11, 11, newsTable)
+    processRow(slot12, 12, newsTable)
+    processRow(slot13, 13, newsTable)
+    processRow(slot14, 14, newsTable)
