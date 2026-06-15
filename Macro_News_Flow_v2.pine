@@ -1,0 +1,43 @@
+
+// @version=5
+indicator("Macro News Flow Engine v2", overlay=true, max_labels_count=500, max_lines_count=500)
+
+// Supports:
+// News
+// CFTC
+// CME
+// Central Banks
+// Commodities
+// Crypto
+
+seedSource = input.string("seed_macro_engine", "Seed Source")
+showNews = input.bool(true)
+showCFTC = input.bool(true)
+showCME = input.bool(true)
+showMacro = input.bool(true)
+
+getSlot(slot) =>
+    request.seed(seedSource, "MACRO_SLOT_" + str.tostring(slot), close)
+
+var table t = table.new(position.bottom_right, 6, 15)
+
+if barstate.islast
+    table.clear(t)
+    table.cell(t,0,0,"Time")
+    table.cell(t,1,0,"Asset")
+    table.cell(t,2,0,"Type")
+    table.cell(t,3,0,"Impact")
+    table.cell(t,4,0,"Source")
+    table.cell(t,5,0,"Headline")
+
+    for i = 1 to 14
+        raw = getSlot(i)
+        if str.length(raw) > 0
+            p = str.split(raw,"|")
+            if array.size(p) >= 6
+                table.cell(t,0,i,array.get(p,0))
+                table.cell(t,1,i,array.get(p,1))
+                table.cell(t,2,i,array.get(p,2))
+                table.cell(t,3,i,array.get(p,3))
+                table.cell(t,4,i,array.get(p,4))
+                table.cell(t,5,i,array.get(p,5))
