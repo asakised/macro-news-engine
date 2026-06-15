@@ -10,9 +10,44 @@ showCFTC  = input.bool(true, "Show CFTC")
 showCME   = input.bool(true, "Show CME")
 showMacro = input.bool(true, "Show Macro")
 
+// Table position
+tablePosInput = input.string("Top Right", "Table Position", options=["Top Right", "Bottom Right", "Top Left", "Bottom Left"])
+
+tablePos =
+     tablePosInput == "Top Right"    ? position.top_right :
+     tablePosInput == "Bottom Right" ? position.bottom_right :
+     tablePosInput == "Top Left"     ? position.top_left :
+                                       position.bottom_left
+
 // Read seed slot
 getSlot(simple string fileName) =>
     request.seed(seedSource, fileName, "EMPTY", ignore_invalid_symbol=true)
+
+// Header row
+drawHeader(table tbl) =>
+    table.cell(tbl, 0, 0, "Time",     width=12, text_color=color.white, bgcolor=color.black)
+    table.cell(tbl, 1, 0, "Asset",    width=10, text_color=color.white, bgcolor=color.black)
+    table.cell(tbl, 2, 0, "Type",     width=16, text_color=color.white, bgcolor=color.black)
+    table.cell(tbl, 3, 0, "Impact",   width=10, text_color=color.white, bgcolor=color.black)
+    table.cell(tbl, 4, 0, "Source",   width=12, text_color=color.white, bgcolor=color.black)
+    table.cell(tbl, 5, 0, "Headline", width=45, text_color=color.white, bgcolor=color.black)
+
+// Impact colour
+impactBg(string impact) =>
+    impact == "HIGH"   ? color.new(color.red, 15) :
+    impact == "MEDIUM" ? color.new(color.orange, 15) :
+    impact == "LOW"    ? color.new(color.gray, 30) :
+                         color.new(color.blue, 40)
+
+// Type icon
+typeIcon(string nType) =>
+    nType == "NEWS"         ? "📰 " :
+    nType == "CFTC"         ? "📊 " :
+    nType == "CME"          ? "📈 " :
+    nType == "CENTRAL_BANK" ? "🏦 " :
+    nType == "COMMODITY"    ? "🛢 " :
+    nType == "CRYPTO"       ? "₿ "  :
+                              ""
 
 // Process one row
 processRow(series string raw, int row, table tbl) =>
@@ -34,12 +69,13 @@ processRow(series string raw, int row, table tbl) =>
                  ((nType == "CENTRAL_BANK" or nType == "COMMODITY" or nType == "CRYPTO") and showMacro)
 
             if allowed
-                table.cell(tbl, 0, row, newsTime)
-                table.cell(tbl, 1, row, asset)
-                table.cell(tbl, 2, row, nType)
-                table.cell(tbl, 3, row, impact)
-                table.cell(tbl, 4, row, source)
-                table.cell(tbl, 5, row, headline)
+                bg = impactBg(impact)
+                table.cell(tbl, 0, row, newsTime,              width=12, text_color=color.white, bgcolor=color.new(color.black, 15))
+                table.cell(tbl, 1, row, asset,                 width=10, text_color=color.white, bgcolor=color.new(color.black, 15))
+                table.cell(tbl, 2, row, typeIcon(nType)+nType, width=16, text_color=color.white, bgcolor=color.new(color.black, 15))
+                table.cell(tbl, 3, row, impact,                width=10, text_color=color.white, bgcolor=bg)
+                table.cell(tbl, 4, row, source,                width=12, text_color=color.white, bgcolor=color.new(color.black, 15))
+                table.cell(tbl, 5, row, headline,              width=45, text_color=color.white, bgcolor=color.new(color.black, 15))
 
 // Fixed seed calls
 slot1  = getSlot("data/MACRO_SLOT_1.txt")
@@ -58,17 +94,12 @@ slot13 = getSlot("data/MACRO_SLOT_13.txt")
 slot14 = getSlot("data/MACRO_SLOT_14.txt")
 
 // Table
-var table newsTable = table.new(position.bottom_right, 6, 15, border_width=1)
+var table newsTable = table.new(tablePos, 6, 15, border_width=1, frame_width=2)
 
 if barstate.islast
     table.clear(newsTable, 0, 0, 5, 14)
 
-    table.cell(newsTable, 0, 0, "Time")
-    table.cell(newsTable, 1, 0, "Asset")
-    table.cell(newsTable, 2, 0, "Type")
-    table.cell(newsTable, 3, 0, "Impact")
-    table.cell(newsTable, 4, 0, "Source")
-    table.cell(newsTable, 5, 0, "Headline")
+    drawHeader(newsTable)
 
     processRow(slot1, 1, newsTable)
     processRow(slot2, 2, newsTable)
