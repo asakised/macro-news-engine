@@ -1,43 +1,79 @@
-
-// @version=5
+//@version=5
 indicator("Macro News Flow Engine v2", overlay=true, max_labels_count=500, max_lines_count=500)
 
-// Supports:
-// News
-// CFTC
-// CME
-// Central Banks
-// Commodities
-// Crypto
+seedSource = input.string("seed_asakised_macro-news-engine", "Seed Source")
 
-seedSource = input.string("seed_macro_engine", "Seed Source")
-showNews = input.bool(true)
-showCFTC = input.bool(true)
-showCME = input.bool(true)
-showMacro = input.bool(true)
+showNews  = input.bool(true, "Show News")
+showCFTC  = input.bool(true, "Show CFTC")
+showCME   = input.bool(true, "Show CME")
+showMacro = input.bool(true, "Show Macro")
 
-getSlot(slot) =>
-    request.seed(seedSource, "MACRO_SLOT_" + str.tostring(slot), close)
+getSlot(simple int slot) =>
+    request.seed(seedSource, "MACRO_SLOT_" + str.tostring(slot), "EMPTY", ignore_invalid_symbol=true)
 
-var table t = table.new(position.bottom_right, 6, 15)
+var table t = table.new(position.bottom_right, 6, 15, border_width=1)
+
+processRow(series string raw, int row) =>
+    if str.length(raw) > 0 and raw != "EMPTY"
+        p = str.split(raw, "|")
+        if array.size(p) >= 6
+            newsTime = array.get(p, 0)
+            asset    = array.get(p, 1)
+            nType    = array.get(p, 2)
+            impact   = array.get(p, 3)
+            source   = array.get(p, 4)
+            headline = array.get(p, 5)
+
+            allowed =
+                 (nType == "NEWS" and showNews) or
+                 (nType == "CFTC" and showCFTC) or
+                 (nType == "CME" and showCME) or
+                 ((nType == "CENTRAL_BANK" or nType == "COMMODITY" or nType == "CRYPTO") and showMacro)
+
+            if allowed
+                table.cell(t, 0, row, newsTime)
+                table.cell(t, 1, row, asset)
+                table.cell(t, 2, row, nType)
+                table.cell(t, 3, row, impact)
+                table.cell(t, 4, row, source)
+                table.cell(t, 5, row, headline)
+
+s1  = getSlot(1)
+s2  = getSlot(2)
+s3  = getSlot(3)
+s4  = getSlot(4)
+s5  = getSlot(5)
+s6  = getSlot(6)
+s7  = getSlot(7)
+s8  = getSlot(8)
+s9  = getSlot(9)
+s10 = getSlot(10)
+s11 = getSlot(11)
+s12 = getSlot(12)
+s13 = getSlot(13)
+s14 = getSlot(14)
 
 if barstate.islast
-    table.clear(t)
-    table.cell(t,0,0,"Time")
-    table.cell(t,1,0,"Asset")
-    table.cell(t,2,0,"Type")
-    table.cell(t,3,0,"Impact")
-    table.cell(t,4,0,"Source")
-    table.cell(t,5,0,"Headline")
+    table.clear(t, 0, 0, 5, 14)
 
-    for i = 1 to 14
-        raw = getSlot(i)
-        if str.length(raw) > 0
-            p = str.split(raw,"|")
-            if array.size(p) >= 6
-                table.cell(t,0,i,array.get(p,0))
-                table.cell(t,1,i,array.get(p,1))
-                table.cell(t,2,i,array.get(p,2))
-                table.cell(t,3,i,array.get(p,3))
-                table.cell(t,4,i,array.get(p,4))
-                table.cell(t,5,i,array.get(p,5))
+    table.cell(t, 0, 0, "Time")
+    table.cell(t, 1, 0, "Asset")
+    table.cell(t, 2, 0, "Type")
+    table.cell(t, 3, 0, "Impact")
+    table.cell(t, 4, 0, "Source")
+    table.cell(t, 5, 0, "Headline")
+
+    processRow(s1, 1)
+    processRow(s2, 2)
+    processRow(s3, 3)
+    processRow(s4, 4)
+    processRow(s5, 5)
+    processRow(s6, 6)
+    processRow(s7, 7)
+    processRow(s8, 8)
+    processRow(s9, 9)
+    processRow(s10, 10)
+    processRow(s11, 11)
+    processRow(s12, 12)
+    processRow(s13, 13)
+    processRow(s14, 14)
